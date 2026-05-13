@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Onbet Bot - Mini App</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: var(--tg-theme-bg-color, #ffffff);
+            color: var(--tg-theme-text-color, #000000);
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            color: white;
+        }
+        
+        .header h1 {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+        
+        .card {
+            background: var(--tg-theme-secondary-bg-color, #f5f5f5);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+        
+        .card-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .form-group {
+            margin-bottom: 16px;
+        }
+        
+        label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 6px;
+            color: var(--tg-theme-hint-color, #666);
+            font-weight: 500;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--tg-theme-hint-color, #ddd);
+            border-radius: 10px;
+            background: var(--tg-theme-bg-color, #fff);
+            color: var(--tg-theme-text-color, #000);
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+        
+        input:focus {
+            outline: none;
+            border-color: var(--tg-theme-button-color, #2481cc);
+            box-shadow: 0 0 0 2px rgba(36,129,204,0.1);
+        }
+        
+        button {
+            width: 100%;
+            padding: 14px;
+            background: var(--tg-theme-button-color, #2481cc);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        button:active {
+            transform: scale(0.98);
+            opacity: 0.9;
+        }
+        
+        button.secondary {
+            background: var(--tg-theme-hint-color, #999);
+            margin-top: 8px;
+        }
+        
+        .account-list {
+            list-style: none;
+        }
+        
+        .account-item {
+            padding: 12px;
+            border-bottom: 1px solid var(--tg-theme-hint-color, #eee);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .account-info {
+            flex: 1;
+        }
+        
+        .account-user {
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .account-pass {
+            color: var(--tg-theme-hint-color, #666);
+            font-size: 12px;
+            font-family: monospace;
+        }
+        
+        .copy-btn {
+            padding: 6px 12px;
+            background: var(--tg-theme-button-color, #2481cc);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            width: auto;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-success {
+            background: #4caf50;
+            color: white;
+        }
+        
+        .status-pending {
+            background: #ff9800;
+            color: white;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--tg-theme-hint-color, #ddd);
+            border-top-color: var(--tg-theme-button-color, #2481cc);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 16px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.85);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 12px;
+            text-align: center;
+            z-index: 1000;
+            animation: fadeInUp 0.3s ease;
+            font-size: 14px;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            background: var(--tg-theme-secondary-bg-color, #f0f0f0);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+        }
+        
+        .tab.active {
+            background: var(--tg-theme-button-color, #2481cc);
+            color: var(--tg-theme-button-text-color, white);
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .stat-card {
+            background: var(--tg-theme-bg-color, white);
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .stat-number {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--tg-theme-button-color, #2481cc);
+        }
+        
+        .stat-label {
+            font-size: 12px;
+            color: var(--tg-theme-hint-color, #666);
+            margin-top: 4px;
+        }
+        
+        .info-text {
+            text-align: center;
+            padding: 20px;
+            color: var(--tg-theme-hint-color, #666);
+            font-size: 14px;
+        }
+        
+        footer {
+            text-align: center;
+            padding: 20px;
+            font-size: 12px;
+            color: var(--tg-theme-hint-color, #999);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎰 Onbet Bot</h1>
+            <p>Quản lý tài khoản và nhận thưởng tự động</p>
+        </div>
+        
+        <div class="tabs">
+            <div class="tab active" data-tab="register">📝 Đăng ký</div>
+            <div class="tab" data-tab="accounts">📋 Tài khoản</div>
+            <div class="tab" data-tab="stats">📊 Thống kê</div>
+        </div>
+        
+        <!-- Tab Đăng ký -->
+        <div id="register-tab">
+            <div class="card">
+                <div class="card-title">
+                    <span>🚀</span>
+                    <span>Đăng ký tài khoản Onbet</span>
+                </div>
+                <div class="form-group">
+                    <label>Số lượng tài khoản</label>
+                    <input type="number" id="numAccounts" placeholder="Nhập số lượng (1-20)" min="1" max="20" value="5">
+                </div>
+                <div class="form-group">
+                    <label>Mã giới thiệu (tùy chọn)</label>
+                    <input type="text" id="inviteCode" placeholder="Nhập mã giới thiệu" value="53836159">
+                </div>
+                <button id="registerBtn">🎯 BẮT ĐẦU ĐĂNG KÝ</button>
+            </div>
+            
+            <div id="registerProgress" class="loading hidden">
+                <div class="spinner"></div>
+                <p>Đang đăng ký tài khoản...</p>
+                <p id="progressMsg" style="font-size: 12px; margin-top: 8px; color: var(--tg-theme-hint-color, #666);"></p>
+            </div>
+        </div>
+        
+        <!-- Tab Danh sách tài khoản -->
+        <div id="accounts-tab" class="hidden">
+            <div class="card">
+                <div class="card-title">
+                    <span>📋</span>
+                    <span>Danh sách tài khoản</span>
+                </div>
+                <div id="accountsList">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Đang tải danh sách...</p>
+                    </div>
+                </div>
+            </div>
+            <button id="refreshAccountsBtn" class="secondary">🔄 Làm mới</button>
+        </div>
+        
+        <!-- Tab Thống kê -->
+        <div id="stats-tab" class="hidden">
+            <div class="card">
+                <div class="card-title">
+                    <span>📊</span>
+                    <span>Thống kê bot</span>
+                </div>
+                <div id="statsContent">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        <p>Đang tải thống kê...</p>
+                    </div>
+                </div>
+            </div>
+            <button id="refreshStatsBtn" class="secondary">🔄 Làm mới</button>
+        </div>
+        
+        <footer>
+            ⚡ Chỉ 1 tab Chrome duy nhất | 🤖 Bot tự động giải captcha
+        </footer>
+    </div>
+    
+    <div id="toast" class="toast hidden"></div>
+    
+    <script>
+        // Khởi tạo Telegram WebApp
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        tg.expand();
+        tg.MainButton.hide();
+        
+        // Lấy thông tin user từ Telegram
+        const user = tg.initDataUnsafe?.user || { id: null, username: 'Unknown' };
+        
+        console.log('Mini App started for user:', user);
+        
+        // DOM elements
+        let currentTab = 'register';
+        
+        // Tab switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabName = tab.dataset.tab;
+                switchTab(tabName);
+            });
+        });
+        
+        function switchTab(tabName) {
+            currentTab = tabName;
+            
+            // Update tab styles
+            document.querySelectorAll('.tab').forEach(tab => {
+                if (tab.dataset.tab === tabName) {
+                    tab.classList.add('active');
+                } else {
+                    tab.classList.remove('active');
+                }
+            });
+            
+            // Show/hide tab content
+            document.getElementById('register-tab').classList.add('hidden');
+            document.getElementById('accounts-tab').classList.add('hidden');
+            document.getElementById('stats-tab').classList.add('hidden');
+            
+            document.getElementById(`${tabName}-tab`).classList.remove('hidden');
+            
+            // Load data based on tab
+            if (tabName === 'accounts') {
+                loadAccounts();
+            } else if (tabName === 'stats') {
+                loadStats();
+            }
+        }
+        
+        // Hiển thị toast message
+        function showToast(message, duration = 3000) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, duration);
+        }
+        
+        // Sao chép text
+        async function copyToClipboard(text) {
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast('✅ Đã sao chép!', 1500);
+            } catch (err) {
+                showToast('❌ Sao chép thất bại', 1500);
+            }
+        }
+        
+        // Đăng ký tài khoản
+        document.getElementById('registerBtn').addEventListener('click', async () => {
+            const numAccounts = parseInt(document.getElementById('numAccounts').value);
+            const inviteCode = document.getElementById('inviteCode').value;
+            
+            if (isNaN(numAccounts) || numAccounts < 1 || numAccounts > 20) {
+                showToast('⚠️ Vui lòng nhập số lượng từ 1-20');
+                return;
+            }
+            
+            // Hiển thị loading
+            document.getElementById('registerProgress').classList.remove('hidden');
+            document.getElementById('registerBtn').disabled = true;
+            document.getElementById('registerBtn').textContent = '🔄 ĐANG XỬ LÝ...';
+            
+            // Gửi yêu cầu đến bot
+            const data = JSON.stringify({
+                action: 'register',
+                num_accounts: numAccounts,
+                invite_code: inviteCode || '53836159',
+                user_id: user.id
+            });
+            
+            tg.sendData(data);
+            
+            // Cập nhật thông báo
+            const progressMsg = document.getElementById('progressMsg');
+            progressMsg.innerHTML = `⏳ Đang gửi yêu cầu đăng ký ${numAccounts} tài khoản...<br>Bot sẽ thông báo khi hoàn thành!`;
+            
+            // Reset button sau 2 giây
+            setTimeout(() => {
+                document.getElementById('registerBtn').disabled = false;
+                document.getElementById('registerBtn').textContent = '🎯 BẮT ĐẦU ĐĂNG KÝ';
+                setTimeout(() => {
+                    document.getElementById('registerProgress').classList.add('hidden');
+                }, 5000);
+            }, 2000);
+        });
+        
+        // Tải danh sách tài khoản
+        async function loadAccounts() {
+            const container = document.getElementById('accountsList');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div><p>Đang tải...</p></div>';
+            
+            tg.sendData(JSON.stringify({
+                action: 'list_accounts',
+                user_id: user.id
+            }));
+        }
+        
+        // Tải thống kê
+        async function loadStats() {
+            const container = document.getElementById('statsContent');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div><p>Đang tải...</p></div>';
+            
+            tg.sendData(JSON.stringify({
+                action: 'stats',
+                user_id: user.id
+            }));
+        }
+        
+        // Refresh
+        document.getElementById('refreshAccountsBtn').addEventListener('click', loadAccounts);
+        document.getElementById('refreshStatsBtn').addEventListener('click', loadStats);
+        
+        // Lắng nghe phản hồi từ bot (qua WebApp)
+        tg.onEvent('mainButtonClicked', () => {});
+        
+        console.log('Mini App ready');
+    </script>
+</body>
+</html>
