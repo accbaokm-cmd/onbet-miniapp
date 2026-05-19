@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ONBET - Nhiệm Vụ Nhận Thưởng</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+        }
+        
+        .container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            padding: 20px 0;
+        }
+        
+        .header h1 {
+            color: #00d4aa;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+        
+        .header p {
+            color: #888;
+            font-size: 14px;
+        }
+        
+        .balance-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 16px;
+            padding: 25px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        
+        .balance-card h3 {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+        
+        .balance-card .amount {
+            font-size: 42px;
+            font-weight: bold;
+        }
+        
+        .balance-card .currency {
+            font-size: 18px;
+            margin-left: 5px;
+        }
+        
+        .card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 20px;
+            margin: 15px 0;
+            backdrop-filter: blur(10px);
+        }
+        
+        .card h2 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: #00d4aa;
+        }
+        
+        .login-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .input-group {
+            position: relative;
+        }
+        
+        .input-group input {
+            width: 100%;
+            padding: 15px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 10px;
+            background: rgba(255,255,255,0.1);
+            color: #fff;
+            font-size: 16px;
+        }
+        
+        .input-group input::placeholder {
+            color: #888;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, opacity 0.2s;
+        }
+        
+        .btn:active {
+            transform: scale(0.98);
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #00d4aa 0%, #00b894 100%);
+            color: #1a1a2e;
+        }
+        
+        .btn-secondary {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+        }
+        
+        .quest-item {
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+            padding: 15px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .quest-info h4 {
+            font-size: 15px;
+            margin-bottom: 5px;
+        }
+        
+        .quest-info p {
+            font-size: 12px;
+            color: #888;
+        }
+        
+        .quest-reward {
+            background: #00d4aa;
+            color: #1a1a2e;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .quest-item.completed {
+            opacity: 0.6;
+        }
+        
+        .quest-item.completed .quest-reward {
+            background: #666;
+        }
+        
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .tab {
+            flex: 1;
+            padding: 12px;
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 10px;
+            color: #888;
+            font-size: 14px;
+            cursor: pointer;
+        }
+        
+        .tab.active {
+            background: #00d4aa;
+            color: #1a1a2e;
+        }
+        
+        .message {
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        .message.success {
+            background: rgba(0, 212, 170, 0.2);
+            color: #00d4aa;
+        }
+        
+        .message.error {
+            background: rgba(255, 100, 100, 0.2);
+            color: #ff6b6b;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #888;
+        }
+        
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>ONBET</h1>
+            <p>Nhiệm Vụ Nhận Thưởng</p>
+        </div>
+        
+        <div class="balance-card">
+            <h3>Số Dư Tài Khoản</h3>
+            <span class="amount" id="balance">0</span>
+            <span class="currency">ONBET</span>
+        </div>
+        
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('quests')">Nhiệm Vụ</button>
+            <button class="tab" onclick="showTab('history')">Lịch Sử</button>
+        </div>
+        
+        <div id="loginSection">
+            <div class="card">
+                <h2>Đăng Nhập Tài Khoản</h2>
+                <div class="login-form">
+                    <div class="input-group">
+                        <input type="text" id="username" placeholder="Tên đăng nhập">
+                    </div>
+                    <div class="input-group">
+                        <input type="password" id="password" placeholder="Mật khẩu">
+                    </div>
+                    <button class="btn btn-primary" onclick="login()">Đăng Nhập</button>
+                </div>
+                <div id="loginMessage"></div>
+            </div>
+        </div>
+        
+        <div id="questsSection" class="hidden">
+            <div class="card">
+                <h2>Nhiệm Vụ Khả Dụng</h2>
+                <div id="questsList"></div>
+            </div>
+        </div>
+        
+        <div id="historySection" class="hidden">
+            <div class="card">
+                <h2>Lịch Sử Nhận Thưởng</h2>
+                <div id="historyList"></div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        const tg = window.Telegram.WebApp;
+        tg.ready();
+        
+        let userId = null;
+        let token = null;
+        let isLoggedIn = false;
+        
+        // Get user data from Telegram
+        const initData = tg.initData;
+        const initDataUnsafe = tg.initDataUnsafe;
+        
+        if (initDataUnsafe && initDataUnsafe.user) {
+            userId = initDataUnsafe.user.id;
+        }
+        
+        function showTab(tab) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelector(`.tab:${tab === 'quests' ? 'first-child' : 'last-child'}`).classList.add('active');
+            
+            document.getElementById('questsSection').classList.add('hidden');
+            document.getElementById('historySection').classList.add('hidden');
+            document.getElementById('loginSection').classList.add('hidden');
+            
+            if (tab === 'quests') {
+                document.getElementById('questsSection').classList.remove('hidden');
+            } else if (tab === 'history') {
+                document.getElementById('historySection').classList.remove('hidden');
+                loadHistory();
+            }
+        }
+        
+        async function login() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const messageEl = document.getElementById('loginMessage');
+            
+            if (!username || !password) {
+                messageEl.innerHTML = '<div class="message error">Vui lòng nhập đầy đủ thông tin</div>';
+                return;
+            }
+            
+            try {
+                // Send login request to bot
+                const response = await fetch(`/api/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        user_id: userId,
+                        username, 
+                        password,
+                        init_data: initData
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    isLoggedIn = true;
+                    token = data.token;
+                    document.getElementById('balance').textContent = data.balance || 0;
+                    document.getElementById('loginSection').classList.add('hidden');
+                    showTab('quests');
+                    loadQuests();
+                    messageEl.innerHTML = '<div class="message success">Đăng nhập thành công!</div>';
+                } else {
+                    messageEl.innerHTML = `<div class="message error">${data.message || 'Đăng nhập thất bại'}</div>`;
+                }
+            } catch (error) {
+                // For demo, simulate login
+                isLoggedIn = true;
+                token = 'demo_token';
+                document.getElementById('balance').textContent = 100;
+                document.getElementById('loginSection').classList.add('hidden');
+                showTab('quests');
+                loadQuests();
+                messageEl.innerHTML = '<div class="message success">Đăng nhập thành công (Demo)!</div>';
+            }
+        }
+        
+        async function loadQuests() {
+            const quests = [
+                { id: 1, name: 'Đăng nhập hàng ngày', desc: 'Đăng nhập mỗi ngày', reward: 10, completed: false },
+                { id: 2, name: 'Cược 100K', desc: 'Đặt cược tối thiểu 100K', reward: 25, completed: false },
+                { id: 3, name: 'Cược 500K', desc: 'Đặt cược tối thiểu 500K', reward: 50, completed: false },
+                { id: 4, name: 'Giới thiệu bạn bè', desc: 'Mời 1 người bạn', reward: 100, completed: false },
+            ];
+            
+            const questsList = document.getElementById('questsList');
+            questsList.innerHTML = quests.map(q => `
+                <div class="quest-item ${q.completed ? 'completed' : ''}">
+                    <div class="quest-info">
+                        <h4>${q.name}</h4>
+                        <p>${q.desc}</p>
+                    </div>
+                    <div class="quest-reward" onclick="claimQuest(${q.id})">
+                        ${q.completed ? '✓' : '+' + q.reward}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        async function claimQuest(questId) {
+            try {
+                const response = await fetch(`/api/claim-quest`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        user_id: userId,
+                        quest_id: questId,
+                        init_data: initData
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('balance').textContent = data.new_balance;
+                    loadQuests();
+                    tg.showPopup({
+                        title: 'Thành Công!',
+                        message: `Bạn nhận được ${data.reward} ONBET`,
+                        buttons: [{ type: 'ok' }]
+                    });
+                }
+            } catch (error) {
+                // Demo mode
+                const currentBalance = parseInt(document.getElementById('balance').textContent);
+                document.getElementById('balance').textContent = currentBalance + 10;
+                loadQuests();
+                tg.showPopup({
+                    title: 'Thành Công!',
+                    message: 'Bạn nhận được 10 ONBET (Demo)',
+                    buttons: [{ type: 'ok' }]
+                });
+            }
+        }
+        
+        async function loadHistory() {
+            const historyList = document.getElementById('historyList');
+            historyList.innerHTML = `
+                <div class="quest-item">
+                    <div class="quest-info">
+                        <h4>Đăng nhập hàng ngày</h4>
+                        <p>Hôm nay, 10:30</p>
+                    </div>
+                    <div class="quest-reward">+10</div>
+                </div>
+                <div class="quest-item completed">
+                    <div class="quest-info">
+                        <h4>Cược 100K</h4>
+                        <p>Hôm qua, 15:45</p>
+                    </div>
+                    <div class="quest-reward">+25</div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
